@@ -27,7 +27,7 @@ export class Nodes extends React.Component {
   }
 
   render() {
-    const { nodes } = this.props;
+    const { nodes, blocks } = this.props;
     return (
       <Box paddingTop={7}>
         <Typography variant="h4" component="h1">
@@ -37,6 +37,7 @@ export class Nodes extends React.Component {
           <Node
             node={node}
             key={node.url}
+            blocks={blocks[node.url]}
             expanded={node.url === this.state.expandedNodeURL}
             toggleNodeExpanded={this.toggleNodeExpanded}
           />
@@ -49,11 +50,17 @@ export class Nodes extends React.Component {
 Nodes.propTypes = {
   actions: PropTypes.object.isRequired,
   nodes: PropTypes.object.isRequired,
+  blocks: PropTypes.object,
+};
+
+Nodes.defaultProps = {
+  blocks: {},
 };
 
 function mapStateToProps(state) {
   return {
     nodes: state.nodes,
+    blocks: state.blocks,
   };
 }
 

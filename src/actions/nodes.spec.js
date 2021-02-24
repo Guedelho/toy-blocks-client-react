@@ -1,7 +1,7 @@
 import * as ActionTypes from '../constants/actionTypes';
 import * as ActionCreators from './nodes';
 
-describe('Actions', () => {
+describe('Node Actions', () => {
   beforeAll(() => {});
   afterAll(() => {});
 

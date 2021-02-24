@@ -1,5 +1,8 @@
-import React from "react";
+import React, { Fragment } from "react";
 import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import * as actions from "../actions/blocks";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import {
   ExpansionPanel,
@@ -11,15 +14,42 @@ import {
 } from "@material-ui/core";
 import colors from "../constants/colors";
 import Status from "./Status";
+import Block from "./Block";
 
-const Node = ({ node, expanded, toggleNodeExpanded }) => {
+const Node = ({node, blocks, actions, expanded, toggleNodeExpanded}) => {
+  const handleOnChange = async () => {
+    toggleNodeExpanded(node);
+    if (!blocks) {
+      await actions.fetchNodeBlocks(node.url);
+    }
+  };
+
+  const renderBlocksList = () => {
+    if (blocks.loading) {
+      return <div>Loading...</div>;
+    }
+    if (blocks.err) {
+      return <div>Ops! something went wrong.</div>;
+    }
+    if (!blocks.list.length) {
+      return <div>Nothing here.</div>;
+    }
+    return (
+      <Fragment>
+        {blocks.list.map((block) => (
+          <Block id={block.id} key={block.id} text={block.attributes.data}/>
+        ))}
+      </Fragment>
+    );
+  };
+
   const classes = useStyles();
   return (
     <ExpansionPanel
       elevation={3}
       className={classes.root}
       expanded={expanded}
-      onChange={() => toggleNodeExpanded(node)}
+      onChange={handleOnChange}
     >
       <ExpansionPanelSummary
         className={classes.summary}
@@ -45,8 +75,8 @@ const Node = ({ node, expanded, toggleNodeExpanded }) => {
           <Status loading={node.loading} online={node.online} />
         </Box>
       </ExpansionPanelSummary>
-      <ExpansionPanelDetails>
-        <Typography>Blocks go here</Typography>
+      <ExpansionPanelDetails className={classes.details}>
+        {blocks && renderBlocksList()}
       </ExpansionPanelDetails>
     </ExpansionPanel>
   );
@@ -59,6 +89,9 @@ const useStyles = makeStyles((theme) => ({
     "&:before": {
       backgroundColor: "unset",
     },
+  },
+  details: {
+    display: 'block',
   },
   summary: {
     padding: "0 24px",
@@ -105,8 +138,19 @@ Node.propTypes = {
     name: PropTypes.string,
     loading: PropTypes.bool,
   }).isRequired,
+  blocks: PropTypes.shape({
+    data: PropTypes.shape({}),
+    loading: PropTypes.bool,
+  }),
   expanded: PropTypes.bool,
+  actions: PropTypes.object.isRequired,
   toggleNodeExpanded: PropTypes.func.isRequired,
 };
 
-export default Node;
+function mapDispatchToProps(dispatch) {
+  return {
+    actions: bindActionCreators(actions, dispatch),
+  };
+}
+
+export default connect(null, mapDispatchToProps)(Node);
